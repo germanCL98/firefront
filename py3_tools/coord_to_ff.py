@@ -13,8 +13,8 @@ from forefirepy.ForeFire import *
 def main(lat, lon, crsin, crsout, output_file):
     [x, y] = reproject(
         [lon, lat],
-        inEpsg="epsg:" + crsin,
-        outEpsg="epsg:" + crsout,
+        inEpsg=f"epsg:{crsin}",
+        outEpsg=f"epsg:{crsout}",
     )
 
     ff = Forefire()

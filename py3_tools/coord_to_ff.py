@@ -22,6 +22,9 @@ def main(lat, lon, crsin, crsout, fueltable, landscape, output_file):
     ff = Forefire()
 
     # ff.configBasicFf(lon=x, lat=y)
+    ff.setDate()
+    # por defecto Rothermel
+    ff.setPropagationModel()
     ff.setFuels(fuelsTableFile=fueltable)
     ff.setProjection(proj=crsout)
 

@@ -1,5 +1,4 @@
 import click
-from datetime import datetime
 
 from forefirepy.ForeFire import *
 
@@ -9,8 +8,20 @@ from forefirepy.ForeFire import *
 @click.option("--lon", default=9.2, help="longitude of fire start")
 @click.option("--crsin", default=4326, help="Input EPSG Code")
 @click.option("--crsout", default=32632, help="Output EPSG Code")
+@click.option(
+    "--fueltable",
+    default="./fuels.ff",
+    type=click.Path(exists=True),
+    help="Fuels table file path",
+)
+@click.option(
+    "--landscape",
+    default="./landscape.nc",
+    type=click.Path(exists=True),
+    help="Landscape file path",
+)
 @click.argument("output_file", type=click.Path())
-def main(lat, lon, crsin, crsout, output_file):
+def main(lat, lon, crsin, crsout, fueltable, landscape, output_file):
     [x, y] = reproject(
         [lon, lat],
         inEpsg=f"epsg:{crsin}",
@@ -18,7 +29,15 @@ def main(lat, lon, crsin, crsout, output_file):
     )
 
     ff = Forefire()
-    ff.configBasicFf(lon=x, lat=y)
+
+    # ff.configBasicFf(lon=x, lat=y)
+    ff.setFuels(fuelsTableFile=fueltable)
+    ff.setProjection(proj=crsout)
+    ff.loadData(nc=landscape)
+    ff.startFire(lon=x, lat=y)
+    # valor por defecto
+    ff.step(dt=12000)
+
     ff.saveFf(output_file)
 
     # os.system(f"cd {output_path}; forefire -i {filename}")

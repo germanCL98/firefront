@@ -1,4 +1,5 @@
 import click
+from datetime import datetime
 
 from forefirepy.ForeFire import *
 
@@ -8,18 +9,8 @@ from forefirepy.ForeFire import *
 @click.option("--lon", default=9.2, help="longitude of fire start")
 @click.option("--crsin", default=4326, help="Input EPSG Code")
 @click.option("--crsout", default=32632, help="Output EPSG Code")
-@click.option(
-    "--fueltable",
-    default="./fuels.ff",
-    type=click.Path(exists=True),
-    help="Fuels table file path",
-)
-@click.option(
-    "--landscape",
-    default="./landscape.nc",
-    type=click.Path(exists=True),
-    help="Landscape file path",
-)
+@click.argument("fueltable", type=click.Path(exists=True))
+@click.argument("landscape", type=click.Path(exists=True))
 @click.argument("output_file", type=click.Path())
 def main(lat, lon, crsin, crsout, fueltable, landscape, output_file):
     [x, y] = reproject(
@@ -33,18 +24,30 @@ def main(lat, lon, crsin, crsout, fueltable, landscape, output_file):
     # ff.configBasicFf(lon=x, lat=y)
     ff.setFuels(fuelsTableFile=fueltable)
     ff.setProjection(proj=crsout)
-    ff.loadData(nc=landscape)
+
+    timestamp = datetime.now().strftime("%Y-%m-%dT%H-%M-%SZ")
+    ff.loadData(nc=landscape, isoDate=timestamp)
+
+    # json antes del incendio
+    # ff.printOutput()
+
     ff.startFire(lon=x, lat=y)
     # valor por defecto
     ff.step(dt=12000)
 
+    # json despues del incendio
+    ff.printOutput()
+
     ff.saveFf(output_file)
 
-    # os.system(f"cd {output_path}; forefire -i {filename}")
-    os.system(f"forefire -i {output_file}")
+    output_path = "/".join(output_file.split("/")[:-1])
+    filename = output_file.split("/")[-1]
+    os.system(f"cd {output_path}; forefire -i {filename}")
+
+    # TODO convertir el fichero ffgeojson a geojson una vez terminada la simulacion
 
     # ff.convert_to_geojson(output_path + "0-2009-07-24T14-57-39Z.ffgeojson")
-    ff.convert_to_geojson("0-2009-07-24T14-57-39Z.ffgeojson")
+    # ff.convert_to_geojson(f"{output_path}/0-{timestamp}.ffgeojson")
 
 
 if __name__ == "__main__":

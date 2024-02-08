@@ -6,9 +6,10 @@ import rasterio as rio
 from math import floor
 import numpy as np
 from datetime import *
-import netCDF4 as netcdf
+# import netCDF4 as netcdf
 from pyproj import Transformer
 import affine
+from scipy.io import netcdf_file
 
 # functions may need to be adapted depending on the specific use case
 
@@ -32,6 +33,8 @@ def default_wind_generator(elevation_array):
         
         wind_dict['wind_u'].append(u)
         wind_dict['wind_v'].append(v)
+    
+    return wind_dict
 
 def prop_vrt_Warp(src_path, epsg):         
     src = rio.open(src_path)
@@ -132,7 +135,7 @@ def parameter_generator(projection):
     return parameters_properties
 
 def landscape_generator(filename, domain_properties, parameters_properties, projection, fuel_model_map, wind_dict, elevation=None):
-    ncfile =  netcdf.netcdf_file(filename, 'w')
+    ncfile =  netcdf_file(filename, 'w')
     ncfile.createDimension('wind_dimensions', 2)
     ncfile.createDimension('wind_directions', 8)
     ncfile.createDimension('wind_rows', wind_dict['wind_shape'][0])
@@ -192,11 +195,7 @@ def landscape_generator(filename, domain_properties, parameters_properties, proj
 
 ### WRAPPING EVERYTHING IN AN EXAMPLE FUNCTION TO GENERATE LANDSCAPE
 
-def example_landscape_gen():
-    fuel_filepath = 'path/to/fuel.tif'
-    elevation_filepath = 'path/to/elevation.tif'
-    epsg = 5880
-
+def example_landscape_gen(fuel_filepath, elevation_filepath, epsg, landscape_filepath):
     fuel_model_map = fuel_model_map_generator(fuel_filepath, epsg)
     elevation_map = elevation_generator(elevation_filepath, epsg)
     wind_dict = default_wind_generator(elevation_map)
@@ -205,4 +204,4 @@ def example_landscape_gen():
     domain = domainGenerator(src)
     parameters = parameter_generator(epsg)
     
-    landscape_generator('custom_landscape.nc', domain, parameters, epsg, fuel_model_map, wind_dict, elevation_map)
+    landscape_generator(landscape_filepath, domain, parameters, epsg, fuel_model_map, wind_dict, elevation_map)

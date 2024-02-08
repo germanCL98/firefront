@@ -2,6 +2,7 @@ import click
 from datetime import datetime
 
 from forefirepy.ForeFire import *
+from forefirepy.landscape_gen_funcs import example_landscape_gen
 
 
 @click.command()
@@ -9,10 +10,12 @@ from forefirepy.ForeFire import *
 @click.option("--lon", default=9.2, help="longitude of fire start")
 @click.option("--crsin", default=4326, help="Input EPSG Code")
 @click.option("--crsout", default=32632, help="Output EPSG Code")
-@click.argument("fueltable", type=click.Path(exists=True))
-@click.argument("landscape", type=click.Path(exists=True))
+@click.option("--fueltable", default="examples/custom/fuels.ff", help="Fuel table parameters for fuel model")
+@click.argument("landcover", type=click.Path(exists=True))
+@click.argument("dem", type=click.Path(exists=True))
+@click.argument("landscape", type=click.Path())
 @click.argument("output_file", type=click.Path())
-def main(lat, lon, crsin, crsout, fueltable, landscape, output_file):
+def main(lat, lon, crsin, crsout, fueltable, landcover, dem, landscape, output_file):
     [x, y] = reproject(
         [lon, lat],
         inEpsg=f"epsg:{crsin}",
@@ -28,7 +31,14 @@ def main(lat, lon, crsin, crsout, fueltable, landscape, output_file):
     ff.setFuels(fuelsTableFile=fueltable)
     ff.setProjection(proj=crsout)
 
+    # se genera el landscape custom 
+    example_landscape_gen(landscape_filepath=landscape, 
+                          fuel_filepath=landcover, 
+                          elevation_filepath=dem,
+                          epsg=crsout)
+
     timestamp = datetime.now().strftime("%Y-%m-%dT%H-%M-%SZ")
+    # el fichero generado se agrega al archivo de simulacion
     ff.loadData(nc=landscape, isoDate=timestamp)
 
     # json antes del incendio
@@ -45,6 +55,8 @@ def main(lat, lon, crsin, crsout, fueltable, landscape, output_file):
 
     output_path = "/".join(output_file.split("/")[:-1])
     filename = output_file.split("/")[-1]
+    
+    print(filename)
     os.system(f"cd {output_path}; forefire -i {filename}")
 
     # TODO convertir el fichero ffgeojson a geojson una vez terminada la simulacion

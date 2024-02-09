@@ -1,5 +1,6 @@
 import click
 from datetime import datetime
+import time
 
 from forefirepy.ForeFire import *
 from forefirepy.landscape_gen_funcs import example_landscape_gen
@@ -28,7 +29,8 @@ def main(lat, lon, crsin, crsout, fueltable, landcover, dem, landscape, output_f
     ff.setDate()
     # por defecto Rothermel
     ff.setPropagationModel()
-    ff.setFuels(fuelsTableFile=fueltable)
+    # ff.setFuels(fuelsTableFile=fueltable)
+    ff.setFuels()
     ff.setProjection(proj=crsout)
 
     # se genera el landscape custom 
@@ -39,7 +41,7 @@ def main(lat, lon, crsin, crsout, fueltable, landcover, dem, landscape, output_f
 
     timestamp = datetime.now().strftime("%Y-%m-%dT%H-%M-%SZ")
     # el fichero generado se agrega al archivo de simulacion
-    ff.loadData(nc=landscape, isoDate=timestamp)
+    ff.loadData(isoDate=timestamp)
 
     # json antes del incendio
     # ff.printOutput()
@@ -55,14 +57,14 @@ def main(lat, lon, crsin, crsout, fueltable, landcover, dem, landscape, output_f
 
     output_path = "/".join(output_file.split("/")[:-1])
     filename = output_file.split("/")[-1]
-    
-    print(filename)
-    os.system(f"cd {output_path}; forefire -i {filename}")
+
+    os.system(f"cd {output_path}")
+    os.system(f"forefire -i {filename}")
 
     # TODO convertir el fichero ffgeojson a geojson una vez terminada la simulacion
 
     # ff.convert_to_geojson(output_path + "0-2009-07-24T14-57-39Z.ffgeojson")
-    # ff.convert_to_geojson(f"{output_path}/0-{timestamp}.ffgeojson")
+    # ff.convert_to_geojson(f"0-{timestamp}.ffgeojson")
 
 
 if __name__ == "__main__":

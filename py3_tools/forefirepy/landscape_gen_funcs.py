@@ -18,7 +18,7 @@ def default_wind_generator(elevation_array):
     wind_dict = {}
     wind_dict['wind_u'] = []
     wind_dict['wind_v'] = []
-    wind_dict['wind_shape'] = (floor(elevation_array.shape[0]/10), floor(elevation_array.shape[1]/10))
+    wind_dict['wind_shape'] = (floor(elevation_array.shape[0]), floor(elevation_array.shape[1]))
     theta = np.linspace(0, 315, 8)
     wind_speed = 10
 
@@ -44,8 +44,8 @@ def prop_vrt_Warp(src_path, epsg):
     max_long, max_lat = (bbox[2], bbox[3])
 
     transformer = Transformer.from_crs("epsg:4326", f'epsg:{epsg}')
-    min_x, min_y = transformer.transform( min_long, min_lat)
-    max_x, max_y = transformer.transform( max_long, max_lat)
+    min_x, min_y = transformer.transform(min_lat, min_long)
+    max_x, max_y = transformer.transform(max_lat, max_long)
     
     right = max_x
     bottom = min_y

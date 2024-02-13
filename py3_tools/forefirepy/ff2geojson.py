@@ -30,6 +30,7 @@ def ffjson2geojson(filepath):
     with open(savePath, 'w', encoding='utf-8') as f:
         json.dump(ff_geojson, f, ensure_ascii=False, indent=4)
     
+    return savePath
 
 if __name__ == '__main__':
     try:
